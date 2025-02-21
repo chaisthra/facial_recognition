@@ -679,4 +679,21 @@ def main():
                         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main() 
+    main()
+
+# At the start of the app
+def initialize_directories():
+    """Create necessary directories if they don't exist"""
+    directories = ['known_faces', 'data', 'attendance']
+    for dir_name in directories:
+        dir_path = Path(dir_name)
+        dir_path.mkdir(exist_ok=True)
+        
+        # Create default users.json if it doesn't exist
+        if dir_name == 'data':
+            users_file = dir_path / 'users.json'
+            if not users_file.exists():
+                users_file.write_text('{"users": []}')
+
+# Call this at startup
+initialize_directories() 

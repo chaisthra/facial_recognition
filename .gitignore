@@ -8,13 +8,14 @@ env/
 venv/
 ENV/
 
-# Project specific - ignore actual data but keep templates
+# Project specific
 known_faces/*
 !known_faces/.gitkeep
 attendance/*
 !attendance/.gitkeep
-data/users.json
-!data/users.json.template
+
+# Keep default users.json
+!data/users.json
 
 # OS specific
 .DS_Store
