@@ -8,19 +8,13 @@ env/
 venv/
 ENV/
 
-# Project specific
+# Project specific - ignore actual data but keep templates
 known_faces/*
 !known_faces/.gitkeep
-data/*
-!data/.gitkeep
 attendance/*
 !attendance/.gitkeep
-
-# Sensitive data
-*.jpg
-*.jpeg
-*.png
-users.json
+data/users.json
+!data/users.json.template
 
 # OS specific
 .DS_Store
