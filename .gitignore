@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Project specific
+known_faces/*
+!known_faces/.gitkeep
+data/*
+!data/.gitkeep
+attendance/*
+!attendance/.gitkeep
+
+# Sensitive data
+*.jpg
+*.jpeg
+*.png
+users.json
+
+# OS specific
+.DS_Store
+Thumbs.db 
