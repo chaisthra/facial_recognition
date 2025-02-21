@@ -10,7 +10,7 @@ setup(
         "face-recognition==1.3.0",
         "numpy==1.26.3",
         "Pillow==10.0.0",
-        "dlib-binary==19.24.0",
+        "dlib==19.24.1",
         "setuptools>=69.0.0",
     ],
     python_requires=">=3.12",
