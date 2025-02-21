@@ -10,6 +10,7 @@ import time
 import base64
 from auth import show_auth_page
 import json
+import shutil
 
 # Set page configuration first - this must be the first Streamlit command
 st.set_page_config(
@@ -68,7 +69,7 @@ try:
     </style>
     """
 except Exception:
-    # Fallback style with centered content
+    # Fallback to gradient background
     background_style = """
     <style>
     .stApp {
@@ -260,11 +261,15 @@ def load_known_faces(username):
             user = next((u for u in data['users'] if u['username'] == username), None)
             
             if user and user['known_faces']:
+                print(f"Found faces in JSON: {len(user['known_faces'])}")  # Debug print
+                
                 for face_data in user['known_faces']:
                     try:
                         face_path = Path(face_data['path'])
+                        print(f"Processing face: {face_path}")  # Debug print
                         
                         if face_path.exists():
+                            print(f"Face file exists: {face_path}")  # Debug print
                             face_image = face_recognition.load_image_file(str(face_path))
                             face_locations = face_recognition.face_locations(face_image, model="hog")
                             
@@ -272,12 +277,14 @@ def load_known_faces(username):
                                 face_encoding = face_recognition.face_encodings(face_image, [face_locations[0]])[0]
                                 known_face_encodings.append(face_encoding)
                                 known_face_names.append(face_data['name'])
+                                print(f"Successfully loaded face: {face_data['name']}")  # Debug print
                     except Exception as e:
+                        print(f"Error processing face: {str(e)}")  # Debug print
                         pass
             else:
-                pass
+                print(f"No faces found for user: {username}")  # Debug print
     except Exception as e:
-        pass
+        print(f"Error loading faces: {str(e)}")  # Debug print
     
     return known_face_encodings, known_face_names
 
@@ -297,25 +304,31 @@ def record_attendance(username, person_name):
                 break
 
 def initialize_camera():
-    """Initialize camera with basic settings and timeout"""
+    """Initialize camera with basic settings"""
     try:
-        start_time = time.time()
-        
-        while time.time() - start_time < MAX_CAMERA_WAIT:
-            camera = cv2.VideoCapture(0)
+        # Try different camera indices
+        for camera_index in [0, 1]:
+            camera = cv2.VideoCapture(camera_index)
             if camera.isOpened():
-                # Test if camera is actually working
-                ret, frame = camera.read()
-                if ret and frame is not None:
-                    return camera
+                # Set camera properties
+                camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                camera.set(cv2.CAP_PROP_FPS, 30)
+                camera.set(cv2.CAP_PROP_AUTOFOCUS, 1)  # Enable autofocus
+                camera.set(cv2.CAP_PROP_BRIGHTNESS, 150)  # Adjust brightness
+                
+                # Test camera and wait for it to initialize
+                for _ in range(10):  # Give camera time to warm up
+                    ret, frame = camera.read()
+                    if ret and frame is not None and not np.all(frame == 0):
+                        return camera
+                    time.sleep(0.1)
                 camera.release()
-            time.sleep(1)
-            
-        st.error("Camera initialization timed out. Please check your camera connection.")
-        return None
         
+        st.error("No working camera found")
+        return None
     except Exception as e:
-        st.error(f"Failed to initialize camera: {str(e)}")
+        st.error(f"Camera error: {str(e)}")
         return None
 
 def safe_camera_release(camera):
@@ -353,11 +366,30 @@ def save_face_data(username, face_name, face_path):
         # Save face image in user's directory
         new_face_path = user_face_dir / f"{face_name}.jpg"
         
-        # If source path exists, move it
+        # Copy instead of move to avoid permission issues
         if Path(face_path).exists():
-            Path(face_path).rename(new_face_path)
+            shutil.copy2(face_path, new_face_path)
+            Path(face_path).unlink()  # Remove original after copy
+            
+            # Update JSON
+            with open('data/users.json', 'r+') as f:
+                data = json.load(f)
+                for user in data['users']:
+                    if user['username'] == username:
+                        user['known_faces'].append({
+                            'name': face_name,
+                            'path': str(new_face_path)
+                        })
+                        f.seek(0)
+                        json.dump(data, f, indent=4)
+                        f.truncate()
+                        break
+            
+            st.success(f"Face saved successfully: {face_name}")
+            return True
     except Exception as e:
-        pass
+        st.error(f"Error saving face: {str(e)}")
+        return False
 
 def load_user_faces(username):
     with open('data/users.json', 'r') as f:
@@ -394,7 +426,7 @@ def display_stored_faces(username):
                                 user['known_faces'].pop(idx)
                                 with open('data/users.json', 'w') as f:
                                     json.dump(data, f, indent=4)
-                                st.experimental_rerun()
+                                st.rerun()
                         st.markdown("</div>", unsafe_allow_html=True)
         else:
             st.info("No faces registered yet")
@@ -413,7 +445,7 @@ def main():
         if st.button("Logout"):
             st.session_state.auth_status = None
             st.session_state.username = None
-            st.experimental_rerun()
+            st.rerun()
     
     # Main title with modern styling
     st.markdown("<h1>Smart Face Recognition System</h1>", unsafe_allow_html=True)
@@ -471,7 +503,7 @@ def main():
                             
                             st.success(f"Face saved for {person_name}!")
                             time.sleep(1)
-                            st.experimental_rerun()
+                            st.rerun()
                     else:
                         st.error("No face detected in the uploaded image")
                 except Exception as e:
@@ -492,77 +524,74 @@ def main():
                 try:
                     camera = initialize_camera()
                     if camera is None:
-                        st.error("Could not access camera. Please check permissions and connection.")
+                        st.error("Could not access camera")
                         st.stop()
                     
                     camera_placeholder = st.empty()
                     capture_button = st.button("📸 Take Picture")
                     
-                    start_time = time.time()
-                    frame_start_time = time.time()
-                    
                     while camera_on:
-                        # Check for timeout
-                        if time.time() - start_time > MAX_CAMERA_WAIT:
-                            st.warning("Camera session timed out. Please restart the camera.")
+                        ret, frame = camera.read()
+                        if not ret or frame is None:
+                            st.error("Failed to capture frame")
                             break
                         
-                        try:
-                            ret, frame = camera.read()
-                            if not ret:
-                                # Reset frame timeout
-                                if time.time() - frame_start_time > FRAME_TIMEOUT:
-                                    st.error("Failed to capture frame. Please check your camera.")
-                                    break
-                                continue
+                        # Convert to RGB for display
+                        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                        camera_placeholder.image(rgb_frame)
+                        
+                        if capture_button:
+                            if not person_name:
+                                st.warning("Please enter a name before capturing")
+                                break
                             
-                            # Reset frame timeout on successful capture
-                            frame_start_time = time.time()
+                            # Save the original BGR frame directly
+                            temp_path = f"known_faces/temp_{person_name}.jpg"
+                            success = cv2.imwrite(temp_path, frame)
                             
-                            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                            camera_placeholder.image(rgb_frame)
+                            if not success:
+                                st.error("Failed to save image")
+                                break
                             
-                            if capture_button:
-                                if not person_name:
-                                    st.warning("Please enter a name before capturing")
-                                    time.sleep(2)
-                                    break
+                            # Read the saved image to verify
+                            saved_frame = cv2.imread(temp_path)
+                            if saved_frame is None:
+                                st.error("Failed to verify saved image")
+                                break
+                            
+                            # Convert to RGB for face detection
+                            rgb_saved = cv2.cvtColor(saved_frame, cv2.COLOR_BGR2RGB)
+                            face_locations = face_recognition.face_locations(rgb_saved, model="hog")
+                            
+                            if face_locations:
+                                # Crop and save face
+                                top, right, bottom, left = face_locations[0]
+                                padding = 50
+                                top = max(0, top - padding)
+                                bottom = min(saved_frame.shape[0], bottom + padding)
+                                left = max(0, left - padding)
+                                right = min(saved_frame.shape[1], right + padding)
                                 
-                                face_locations = face_recognition.face_locations(rgb_frame)
-                                if face_locations:
-                                    try:
-                                        save_path = f"known_faces/{person_name}.jpg"
-                                        
-                                        # Crop and save face with padding
-                                        top, right, bottom, left = face_locations[0]
-                                        padding = 50
-                                        top = max(0, top - padding)
-                                        bottom = min(frame.shape[0], bottom + padding)
-                                        left = max(0, left - padding)
-                                        right = min(frame.shape[1], right + padding)
-                                        
-                                        face_img = frame[top:bottom, left:right]
-                                        cv2.imwrite(save_path, face_img)
-                                        
-                                        save_face_data(st.session_state.username, person_name, save_path)
-                                        
-                                        st.success(f"Picture captured and saved for {person_name}!")
-                                        time.sleep(1)
-                                        break
-                                        
-                                    except Exception as e:
-                                        st.error(f"Failed to save image: {str(e)}")
-                                        break
-                                else:
-                                    st.warning("No face detected. Please position yourself properly.")
-                                    time.sleep(2)
-                                    break
-                            
-                            time.sleep(0.1)
-                            
-                        except Exception as e:
-                            st.error(f"Error processing frame: {str(e)}")
-                            break
+                                face_img = saved_frame[top:bottom, left:right]
+                                cv2.imwrite(temp_path, face_img)
+                                
+                                # Show the captured face
+                                st.image(cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB), caption="Captured Face")
+                                
+                                # Save face data
+                                if save_face_data(st.session_state.username, person_name, temp_path):
+                                    st.success("Face captured and saved successfully!")
+                                    time.sleep(1)
+                                    st.rerun()
+                                break
+                            else:
+                                st.warning("No face detected. Please position yourself properly.")
+                                if Path(temp_path).exists():
+                                    Path(temp_path).unlink()
+                                time.sleep(2)
+                                continue
+                        
+                        time.sleep(0.1)
                         
                 except Exception as e:
                     st.error(f"Camera error: {str(e)}")

@@ -1,3 +1,136 @@
 {
-    "users": []
-} 
+    "users": [
+        {
+            "username": "chaithra3",
+            "password": "650f3ac79e6f579c64ef145050ce077ef20548210791a6ffdda505d8adef3d2d",
+            "known_faces": [
+                {
+                    "name": "face1",
+                    "path": "known_faces/chaithra3/face1.jpg"
+                },
+                {
+                    "name": "nithin",
+                    "path": "known_faces/chaithra3/nithin.jpg"
+                },
+                {
+                    "name": "chai",
+                    "path": "known_faces/chaithra3/chai.jpg"
+                },
+                {
+                    "name": "chai",
+                    "path": "known_faces/chaithra3/chai.jpg"
+                },
+                {
+                    "name": "Chaithra N",
+                    "path": "known_faces/chaithra3/Chaithra N.jpg"
+                }
+            ],
+            "attendance_records": [
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:33"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:33"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:33"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:33"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:34"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:34"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:34"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:34"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:34"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:35"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:35"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:35"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:35"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:36"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:36"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:36"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:36"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:37"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:37"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:37"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:37"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:37"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:38"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:38"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:38"
+                },
+                {
+                    "name": "Chaithra N",
+                    "timestamp": "2025-02-22 00:33:38"
+                }
+            ]
+        }
+    ]
+}

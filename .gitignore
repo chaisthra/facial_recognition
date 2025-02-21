@@ -14,8 +14,9 @@ known_faces/*
 attendance/*
 !attendance/.gitkeep
 
-# Keep default users.json
+# Keep these files
 !data/users.json
+!assets/background.jpeg
 
 # OS specific
 .DS_Store
